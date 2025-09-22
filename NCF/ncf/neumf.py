@@ -62,7 +62,6 @@ class Module(nn.Module):
             dim=-1,
         )
         pred_vector = torch.cat(**kwargs)
-
         logit = self.logit_layer(pred_vector).squeeze(-1)
 
         return logit

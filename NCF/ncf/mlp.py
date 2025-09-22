@@ -64,33 +64,39 @@ class Module(nn.Module):
         user_slice = self.user_embed(user_idx)
         item_slice = self.item_embed(item_idx)
 
-        concat = torch.cat(
+        kwargs = dict(
             tensors=(user_slice, item_slice), 
             dim=-1,
         )
-
+        concat = torch.cat(**kwargs)
         pred_vector = self.mlp_layers(concat)
 
         return pred_vector
 
     def _init_layers(self):
-        self.user_embed = nn.Embedding(
+        kwargs = dict(
             num_embeddings=self.n_users+1, 
             embedding_dim=self.n_factors,
             padding_idx=self.n_users,
         )
-        self.item_embed = nn.Embedding(
+        self.user_embed = nn.Embedding(**kwargs)
+
+        kwargs = dict(
             num_embeddings=self.n_items+1, 
             embedding_dim=self.n_factors,
             padding_idx=self.n_items,
         )
+        self.item_embed = nn.Embedding(**kwargs)
+
         self.mlp_layers = nn.Sequential(
             *list(self._generate_layers(self.hidden))
         )
-        self.logit_layer = nn.Linear(
+
+        kwargs = dict(
             in_features=self.hidden[-1],
             out_features=1,
         )
+        self.logit_layer = nn.Linear(**kwargs)
 
     def _generate_layers(self, hidden):
         idx = 1

@@ -60,17 +60,22 @@ class Module(nn.Module):
         return pred_vector
 
     def _init_layers(self):
-        self.user_embed = nn.Embedding(
+        kwargs = dict(
             num_embeddings=self.n_users+1, 
             embedding_dim=self.n_factors,
             padding_idx=self.n_users,
         )
-        self.item_embed = nn.Embedding(
+        self.user_embed = nn.Embedding(**kwargs)
+
+        kwargs = dict(
             num_embeddings=self.n_items+1, 
             embedding_dim=self.n_factors,
             padding_idx=self.n_items,
         )
-        self.logit_layer = nn.Linear(
+        self.item_embed = nn.Embedding(**kwargs)
+
+        kwargs = dict(
             in_features=self.n_factors,
             out_features=1,
         )
+        self.logit_layer = nn.Linear(**kwargs)
