@@ -25,9 +25,6 @@ class Module(nn.Module):
         self.hidden = hidden
         self.dropout = dropout
 
-        # debugging args error
-        self._assert_arg_error()
-
         # generate layers
         self._init_layers()
 
@@ -60,34 +57,35 @@ class Module(nn.Module):
         pred_vector_gmf = self.gmf.gmf(user_idx, item_idx)
         pred_vector_mlp = self.mlp.ncf(user_idx, item_idx)
 
-        pred_vector_cat = torch.cat(
+        kwargs = dict(
             tensors=(pred_vector_gmf, pred_vector_mlp), 
-            dim=-1
+            dim=-1,
         )
+        pred_vector = torch.cat(**kwargs)
 
-        logit = self.logit_layer(pred_vector_cat).squeeze(-1)
+        logit = self.logit_layer(pred_vector).squeeze(-1)
 
         return logit
 
     def _init_layers(self):
-        self.gmf = gmf.Module(
+        kwargs = dict(
             n_users=self.n_users,
             n_items=self.n_items,
             n_factors=self.n_factors // 2,
         )
-        self.mlp = mlp.Module(
+        self.gmf = gmf.Module(**kwargs)
+
+        kwargs = dict(
             n_users=self.n_users,
             n_items=self.n_items,
             n_factors=self.n_factors,
             hidden=self.hidden,
             dropout=self.dropout,
         )
-        self.logit_layer = nn.Linear(
+        self.mlp = mlp.Module(**kwargs)
+
+        kwargs = dict(
             in_features=self.n_factors//2 + self.hidden[-1],
             out_features=1,
         )
-
-    def _assert_arg_error(self):
-        CONDITION = (self.hidden[0] == self.n_factors * 2)
-        ERROR_MESSAGE = f"First MLP layer must match input size: {self.n_factors * 2}"
-        assert CONDITION, ERROR_MESSAGE
+        self.logit_layer = nn.Linear(**kwargs)
