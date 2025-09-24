@@ -88,6 +88,9 @@ class Module(nn.Module):
         )
         self.item_embed = nn.Embedding(**kwargs)
 
+        nn.init.normal_(self.user_embed.weight, mean=0.0, std=0.01)
+        nn.init.normal_(self.item_embed.weight, mean=0.0, std=0.01)
+
         self.mlp_layers = nn.Sequential(
             *list(self._generate_layers(self.hidden))
         )
