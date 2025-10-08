@@ -10,6 +10,7 @@ class Module(nn.Module):
         n_factors: int,
     ):
         super(Module, self).__init__()
+
         # attr dictionary for load
         self.init_args = locals().copy()
         del self.init_args["self"]
@@ -21,7 +22,7 @@ class Module(nn.Module):
         self.n_factors = n_factors
 
         # generate layers
-        self._init_layers()
+        self._set_up_components()
 
     def forward(
         self, 
@@ -59,7 +60,11 @@ class Module(nn.Module):
         pred_vector = user_slice * item_slice
         return pred_vector
 
-    def _init_layers(self):
+    def _set_up_components(self):
+        self._create_embeddings()
+        self._create_layers()
+
+    def _create_embeddings(self):
         kwargs = dict(
             num_embeddings=self.n_users+1, 
             embedding_dim=self.n_factors,
@@ -74,9 +79,7 @@ class Module(nn.Module):
         )
         self.item_embed = nn.Embedding(**kwargs)
 
-        nn.init.normal_(self.user_embed.weight, mean=0.0, std=0.01)
-        nn.init.normal_(self.item_embed.weight, mean=0.0, std=0.01)
-
+    def _create_layers(self):
         kwargs = dict(
             in_features=self.n_factors,
             out_features=1,

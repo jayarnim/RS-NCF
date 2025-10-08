@@ -13,6 +13,7 @@ class Module(nn.Module):
         dropout: float,
     ):
         super(Module, self).__init__()
+
         # attr dictionary for load
         self.init_args = locals().copy()
         del self.init_args["self"]
@@ -26,7 +27,7 @@ class Module(nn.Module):
         self.dropout = dropout
 
         # generate layers
-        self._init_layers()
+        self._set_up_components()
 
     def forward(
         self, 
@@ -66,7 +67,11 @@ class Module(nn.Module):
 
         return logit
 
-    def _init_layers(self):
+    def _set_up_components(self):
+        self._create_modules()
+        self._create_layers()
+
+    def _create_modules(self):
         kwargs = dict(
             n_users=self.n_users,
             n_items=self.n_items,
@@ -83,6 +88,7 @@ class Module(nn.Module):
         )
         self.mlp = mlp.Module(**kwargs)
 
+    def _create_layers(self):
         kwargs = dict(
             in_features=self.n_factors//2 + self.hidden[-1],
             out_features=1,
