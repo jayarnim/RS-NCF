@@ -55,9 +55,9 @@ class Module(nn.Module):
         return logit
 
     def gmf(self, user_idx, item_idx):
-        user_slice = self.user_embed(user_idx)
-        item_slice = self.item_embed(item_idx)
-        pred_vector = user_slice * item_slice
+        user_embed_slice = self.user_embed(user_idx)
+        item_embed_slice = self.item_embed(item_idx)
+        pred_vector = user_embed_slice * item_embed_slice
         return pred_vector
 
     def _set_up_components(self):

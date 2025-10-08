@@ -62,11 +62,11 @@ class Module(nn.Module):
         return logit
 
     def ncf(self, user_idx, item_idx):
-        user_slice = self.user_embed(user_idx)
-        item_slice = self.item_embed(item_idx)
+        user_embed_slice = self.user_embed(user_idx)
+        item_embed_slice = self.item_embed(item_idx)
 
         kwargs = dict(
-            tensors=(user_slice, item_slice), 
+            tensors=(user_embed_slice, item_embed_slice), 
             dim=-1,
         )
         concat = torch.cat(**kwargs)
