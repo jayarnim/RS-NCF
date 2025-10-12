@@ -9,7 +9,23 @@ class Module(nn.Module):
         n_items: int,
         n_factors: int,
     ):
-        super(Module, self).__init__()
+        """
+        Neural Collaborative Filtering (He et al., 2017)
+        -----
+        Implements the base structure of Generalized Matrix Factorization (GMF),
+        MF & id embedding based latent factor model,
+        sub-module of Neural Matrix Factorization (NeuMF)
+        to learn low-rank linear representation.
+
+        Args:
+            n_users (int):
+                total number of users in the dataset, U.
+            n_items (int):
+                total number of items in the dataset, I.
+            n_factors (int):
+                dimensionality of user and item latent representation vectors, K.
+        """
+        super().__init__()
 
         # attr dictionary for load
         self.init_args = locals().copy()
@@ -30,28 +46,40 @@ class Module(nn.Module):
         item_idx: torch.Tensor,
     ):
         """
-        user_idx: (B,)
-        item_idx: (B,)
+        Training Method
+
+        Args:
+            user_idx (torch.Tensor): target user idx (shape: [B,])
+            item_idx (torch.Tensor): target item idx (shape: [B,])
+        
+        Returns:
+            logit (torch.Tensor): (u,i) pair interaction logit (shape: [B,])
         """
         return self.score(user_idx, item_idx)
 
+    @torch.no_grad()
     def predict(
         self, 
         user_idx: torch.Tensor, 
         item_idx: torch.Tensor,
     ):
         """
-        user_idx: (B,)
-        item_idx: (B,)
+        Evaluation Method
+
+        Args:
+            user_idx (torch.Tensor): target user idx (shape: [B,])
+            item_idx (torch.Tensor): target item idx (shape: [B,])
+
+        Returns:
+            prob (torch.Tensor): (u,i) pair interaction probability (shape: [B,])
         """
-        with torch.no_grad():
-            logit = self.score(user_idx, item_idx)
-            pred = torch.sigmoid(logit)
-        return pred
+        logit = self.score(user_idx, item_idx)
+        prob = torch.sigmoid(logit)
+        return prob
 
     def score(self, user_idx, item_idx):
         pred_vector = self.gmf(user_idx, item_idx)
-        logit = self.logit_layer(pred_vector).squeeze(-1)
+        logit = self.pred_layer(pred_vector).squeeze(-1)
         return logit
 
     def gmf(self, user_idx, item_idx):
@@ -62,6 +90,7 @@ class Module(nn.Module):
 
     def _set_up_components(self):
         self._create_embeddings()
+        self._init_embeddings()
         self._create_layers()
 
     def _create_embeddings(self):
@@ -79,9 +108,13 @@ class Module(nn.Module):
         )
         self.item_embed = nn.Embedding(**kwargs)
 
+    def _init_embeddings(self):
+        nn.init.normal_(self.user_embed.weight, mean=0.0, std=0.01)
+        nn.init.normal_(self.item_embed.weight, mean=0.0, std=0.01)
+
     def _create_layers(self):
         kwargs = dict(
             in_features=self.n_factors,
             out_features=1,
         )
-        self.logit_layer = nn.Linear(**kwargs)
+        self.pred_layer = nn.Linear(**kwargs)
