@@ -1,0 +1,7 @@
+gmf:
+  embedding_dim: 16
+
+mlp:
+  embedding_dim: 32
+  hidden_dim: [64, 64, 32, 16]
+  dropout: 0.2
